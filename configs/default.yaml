@@ -1,0 +1,26 @@
+# 自動アノテーションパイプライン設定
+dataset:
+  id: sshao0516/CrowdHuman        # odgt アノテーションの取得元
+  image_repo: jamarks/CrowdHuman-train  # 画像の個別取得元(zip 展開を回避)
+  split: train
+  limit: 100            # 開発中はサブセットで回す。全量は null
+
+model:
+  weights: yolo11m.pt   # 人物検出ベースモデル。x は高精度だが 4.3 倍遅い(全量実行時の判断は ROADMAP 参照)
+  classes: [0]          # COCO person のみ
+  conf_floor: 0.15      # 推論時の下限(拾うだけ拾う)
+  imgsz: 1280           # 推論解像度。人混みの小さい人物対策で高め
+  device: mps           # Apple GPU。CPU 比で 4〜16 倍高速
+  sahi:
+    enabled: false      # 高密度画像で true(スライス推論)
+    tile_size: 640
+    overlap: 0.2
+
+thresholds:
+  accept: 0.5           # これ以上は自動採用
+  review: 0.25          # accept 未満かつこれ以上はレビュー対象、未満は破棄
+
+export:
+  formats: [coco, yolo]
+  train_ratio: 0.9
+  include_auto: false   # reviewed のみ出力

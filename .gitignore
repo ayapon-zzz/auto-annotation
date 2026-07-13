@@ -1,0 +1,6 @@
+data/
+*.pt
+__pycache__/
+.venv/
+fiftyone/
+.DS_Store
