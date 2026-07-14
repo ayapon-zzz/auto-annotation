@@ -28,3 +28,4 @@ HuggingFace のデータセットをローカルに取得し、パイプライ�
 - gated dataset でアクセス拒否された場合は `huggingface-cli login` が必要な旨をユーザーに伝える
   (`! huggingface-cli login` で実行してもらう)
 - 既に取得済みのデータがあれば再ダウンロードせずスキップする
+- コードの変更が必要になった場合は main に直接コミットせず、必ずブランチを切って変更し PR を作成する(CLAUDE.md の開発規約参照)
