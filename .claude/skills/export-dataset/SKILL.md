@@ -27,3 +27,4 @@ description: レビュー済みアノテーションを COCO / YOLO 形式のデ
 - 元データセットのライセンス(CrowdHuman は研究用途限定)を README に必ず継承する
 - `rejected` の annotation は除外、`--include-auto` 指定時のみ `auto` を含める
 - HF への push は公開行為なので、リポジトリ名と公開/非公開をユーザーに確認してから行う
+- コードの変更が必要になった場合は main に直接コミットせず、必ずブランチを切って変更し PR を作成する(CLAUDE.md の開発規約参照)
