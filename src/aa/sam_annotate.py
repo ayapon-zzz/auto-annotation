@@ -17,7 +17,8 @@ from pycocotools import mask as mask_util
 from ultralytics import SAM
 
 CATEGORIES = [{"id": 1, "name": "person"}]
-BOX_CHUNK = 64  # tiny モデルなら 64 箱まで MPS メモリに収まる (base は 24 が上限)
+# MPS メモリに収まる箱プロンプト数の上限: sam2.1_t は 64、sam2.1_b / SAM3 は 24
+DEFAULT_BOX_CHUNK = 24
 
 
 def load_gt_boxes(gt_path: Path) -> tuple[dict, dict]:
@@ -40,6 +41,7 @@ def run_inference(
     weights: str,
     device: str,
     max_images: int | None,
+    box_chunk: int = DEFAULT_BOX_CHUNK,
 ) -> None:
     done: set[str] = set()
     if jsonl_path.exists():
@@ -60,8 +62,8 @@ def run_inference(
             path = images_dir / name
             xyxy = [[x, y, x + w, y + h] for x, y, w, h in boxes_by_name[name]]
             rles = []
-            for j in range(0, len(xyxy), BOX_CHUNK):
-                results = model(path, bboxes=xyxy[j:j + BOX_CHUNK], device=device, verbose=False)
+            for j in range(0, len(xyxy), box_chunk):
+                results = model(path, bboxes=xyxy[j:j + box_chunk], device=device, verbose=False)
                 masks = results[0].masks.data.cpu().numpy().astype(np.uint8)
                 for m in masks:
                     rle = mask_util.encode(np.asfortranarray(m))
@@ -113,6 +115,7 @@ def main() -> None:
     parser.add_argument("--weights", default="sam2.1_b.pt")
     parser.add_argument("--device", default="mps")
     parser.add_argument("--max-images", type=int)
+    parser.add_argument("--box-chunk", type=int, default=DEFAULT_BOX_CHUNK)
     parser.add_argument("--finalize-only", action="store_true")
     args = parser.parse_args()
 
@@ -121,7 +124,8 @@ def main() -> None:
     if args.finalize_only:
         finalize(jsonl_path, images, args.output)
         return
-    run_inference(args.images, jsonl_path, boxes, args.weights, args.device, args.max_images)
+    run_inference(args.images, jsonl_path, boxes, args.weights, args.device,
+                  args.max_images, args.box_chunk)
 
 
 if __name__ == "__main__":

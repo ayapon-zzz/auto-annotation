@@ -51,6 +51,15 @@ def build_dataset(images_dir: Path, pred_path: Path, gt_path: Path | None) -> fo
                 label="person",
                 bounding_box=[x / w, y / h, bw / w, bh / h],
             )
+            if a.get("segmentation"):
+                # COCO RLE → bbox 領域のインスタンスマスク (FiftyOne の形式)
+                from pycocotools import mask as mask_util
+                full = mask_util.decode(a["segmentation"]).astype(bool)
+                x0, y0 = round(x), round(y)
+                x1, y1 = round(x + bw), round(y + bh)
+                patch = full[max(y0, 0):min(y1, h), max(x0, 0):min(x1, w)]
+                if patch.size:
+                    det.mask = patch
             if with_score:
                 det.confidence = a.get("score")
                 det["ann_id"] = a["id"]
